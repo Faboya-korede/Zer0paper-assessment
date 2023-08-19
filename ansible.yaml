@@ -1,0 +1,69 @@
+---
+- name: set up the instances
+  hosts: all
+  remote_user: ubuntu
+  become: yes
+
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    
+    - name: create directory 
+      shell: sudo mkdir Nodejs-docker 
+
+    - name: mkdir 
+      shell: sudo mkdir Nodejs-docker/views
+    
+    - name: dparam
+      shell: sudo mkdir Nodejs-docker/dhparam
+
+    - name: nginx
+      shell: sudo mkdir Nodejs-docker/nginx-conf  
+    
+    - name: ssl generation 
+      shell: sudo openssl dhparam -out /home/ubuntu/Nodejs-docker/dhparam/dhparam-2048.pem 2048
+
+    - name: Clone a github repository
+      git:
+        repo: https://gitlab.com/zer0paper-assessments/sample-node-mongo-api.git
+        dest: /home/ubuntu/sample-node-mongo-api
+        clone: yes
+        update: yes
+
+    - name: move to directory 
+      shell: sudo mv /home/ubuntu/sample-node-mongo-api/*  /home/ubuntu/Nodejs-docker
+    
+    - name: Remove directory 
+      shell: sudo rm -rf /home/ubuntu/sample-node-mongo-api
+      
+    - name: Install required packages for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Install Docker Compose
+      shell: |
+        curl -sSL https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+
+    
